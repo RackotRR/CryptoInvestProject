@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 # Import data
-data = pd.read_csv('data_stocks.csv')
+data = pd.read_csv('data_stocks/data_stocks.csv')
 
 # Drop date variable
 data = data.drop(['DATE'], 1)
@@ -50,7 +50,7 @@ n_neurons_3 = 256
 n_neurons_4 = 128
 
 # Session
-net = tf.InteractiveSession()
+net = tf.compat.v1.InteractiveSession()
 
 # Placeholder
 X = tf.placeholder(dtype=tf.float32, shape=[None, n_stocks])
