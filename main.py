@@ -5,6 +5,8 @@ import csv
 from keras.models import Sequential
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 
+
+
 def shuffle_in_unison(a, b):
     # courtsey http://stackoverflow.com/users/190280/josh-bleecher-snyder
     assert len(a) == len(b)
