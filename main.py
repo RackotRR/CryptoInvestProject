@@ -3,9 +3,17 @@ import numpy as np
 import pandas as pd
 import csv
 from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Flatten
-
-
+#from keras.layers.core import Dense, Dropout, Activation, Flatten
+#from keras.layers import BatchNormalization
+#from keras.layers import Merge
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
+from keras.optimizers import RMSprop, Adam, SGD, Nadam
+from keras.layers import *
+#from keras.layers import Convolution1D, MaxPooling1D, AtrousConvolution1D
+#from keras.layers.recurrent import LSTM, GRU
+from keras import regularizers
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 
 def shuffle_in_unison(a, b):
     # courtsey http://stackoverflow.com/users/190280/josh-bleecher-snyder
@@ -30,10 +38,10 @@ def create_Xt_Yt(X, y, percentage=0.9):
 
     return X_train, X_test, Y_train, Y_test
 
-with open("AAPL.csv", encoding='utf-8') as r_file:
+with open("AAPL1.csv", encoding='utf-8') as r_file:
     data = csv.reader(r_file, delimiter=",")
     count = 0
-    close_price = np.zeros((255, 1))
+    close_price = np.zeros((505, 1))
     for row in data:
         if count != 0:
             close_price[count] = row[5]
@@ -41,7 +49,7 @@ with open("AAPL.csv", encoding='utf-8') as r_file:
 
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
-ax1.set_xlim(1, 250)
+ax1.set_xlim(1, 500)
 ax1.set_ylim(100, 200)
 ax1.plot(close_price)
 plt.show()
@@ -76,6 +84,67 @@ X = [(np.array(x) - np.mean(x)) / np.std(x) for x in X]  # comment it to remove 
 X, Y = np.array(X), np.array(Y)
 X_train, X_test, Y_train, Y_test = create_Xt_Yt(X, Y)
 
-#model = Sequential()
-#X = [(np.array(x) - np.mean(x)) / np.std(x) for x in X]
-#close_price_diffs = close.price.pct_change()p
+model = Sequential()
+model.add(Dense(64, input_dim=30, activity_regularizer=regularizers.l2(0.01)))
+model.add(BatchNormalization())
+model.add(ReLU())
+
+model.add(Dropout(0.5))
+model.add(Dense(16, activity_regularizer=regularizers.l2(0.01)))
+model.add(BatchNormalization())
+model.add(ReLU())
+model.add(Dense(2))
+model.add(Activation('softmax'))
+
+opt = Nadam(lr=0.001)
+
+reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.9, patience=25, min_lr=0.000001, verbose=1)
+checkpointer = ModelCheckpoint(filepath="test.hdf5", verbose=1, save_best_only=True)
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+
+history = model.fit(X_train, Y_train,
+          epochs = 150,
+          batch_size = 128,
+          verbose=1,
+          validation_data=(X_test, Y_test),
+          callbacks=[reduce_lr, checkpointer],
+          shuffle=True)
+
+plt.figure()
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='best')
+plt.show()
+
+plt.figure()
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='best')
+plt.show()
+
+#pred = model.predict(np.array(X_test))
+#C = confusion_matrix([np.argmax(y) for y in Y_test], [np.argmax(y) for y in pred])
+
+#print (C / C.astype(np.float).sum(axis=1))
+
+# FROM = 0
+# TO = FROM + 500
+#
+# original = Y_test[FROM:TO]
+# predicted = pred[FROM:TO]
+
+# plt.plot(original, color='black', label = 'Original data')
+# plt.plot(predicted, color='blue', label = 'Predicted data')
+
+# plt.plot(rr, color='blue', label = 'Predicted data')
+# plt.plot(qw, color='red', label = 'Predicted data')
+# plt.legend(loc='best')
+# plt.title('Actual and predicted from point %d to point %d of test set' % (FROM, TO))
+# plt.show()
+
