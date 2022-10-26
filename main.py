@@ -2,21 +2,16 @@ import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import csv
+import seaborn as sbn
 from keras.models import Sequential
-#from keras.layers.core import Dense, Dropout, Activation, Flatten
-#from keras.layers import BatchNormalization
-#from keras.layers import Merge
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
 from keras.optimizers import RMSprop, Adam, SGD, Nadam
 from keras.layers import *
-#from keras.layers import Convolution1D, MaxPooling1D, AtrousConvolution1D
-#from keras.layers.recurrent import LSTM, GRU
 from keras import regularizers
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 
 def shuffle_in_unison(a, b):
-    # courtsey http://stackoverflow.com/users/190280/josh-bleecher-snyder
     assert len(a) == len(b)
     shuffled_a = np.empty(a.shape, dtype=a.dtype)
     shuffled_b = np.empty(b.shape, dtype=b.dtype)
@@ -38,22 +33,35 @@ def create_Xt_Yt(X, y, percentage=0.9):
 
     return X_train, X_test, Y_train, Y_test
 
-with open("AAPL1.csv", encoding='utf-8') as r_file:
-    data = csv.reader(r_file, delimiter=",")
-    count = 0
-    close_price = np.zeros((505, 1))
-    for row in data:
-        if count != 0:
-            close_price[count] = row[5]
-        count += 1
+with open("AAPL_clear.csv", encoding='utf-8') as r_file:
 
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax1.set_xlim(1, 500)
-ax1.set_ylim(100, 200)
-ax1.plot(close_price)
-plt.show()
+    data = pd.read_csv(r_file, delimiter=",")
+    #close_price = np.zeros((1134, 1))
+    close_price = data[["Adj Close"]].to_numpy()
+    data = data.drop(columns=['Date'], axis=1)
+    df = pd.DataFrame(data)
+    #print(data.values)
+    # for index, row in data.iterrows():
+    #     close_price[index] = row[5]
 
+# fig = plt.figure()
+# ax1 = fig.add_subplot(111)
+# ax1.set_xlim(1, 500)
+# ax1.set_ylim(100, 200)
+# ax1.plot(close_price)
+# ax1.set_xlabel('days')
+# ax1.set_ylabel('dollars')
+# ax1.set_title('cost')
+# plt.show()
+
+# print(df.head())
+# print(df.describe())
+# print(df.isnull().sum())
+# print(df.info())
+#
+# sbn.pairplot(df, hue='Volume')
+# plt.show()
+print(close_price)
 WINDOW = 30
 EMB_SIZE = 1
 STEP = 1
@@ -85,13 +93,13 @@ X, Y = np.array(X), np.array(Y)
 X_train, X_test, Y_train, Y_test = create_Xt_Yt(X, Y)
 
 model = Sequential()
-model.add(Dense(64, input_dim=30, activity_regularizer=regularizers.l2(0.01)))
-model.add(BatchNormalization())
+model.add(Dense(32, input_dim=30, activity_regularizer=regularizers.l2(0.01)))
+#model.add(BatchNormalization())
 model.add(ReLU())
 
-model.add(Dropout(0.5))
+#model.add(Dropout(0.5))
 model.add(Dense(16, activity_regularizer=regularizers.l2(0.01)))
-model.add(BatchNormalization())
+#model.add(BatchNormalization())
 model.add(ReLU())
 model.add(Dense(2))
 model.add(Activation('softmax'))
@@ -103,7 +111,7 @@ checkpointer = ModelCheckpoint(filepath="test.hdf5", verbose=1, save_best_only=T
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 history = model.fit(X_train, Y_train,
-          epochs = 150,
+          epochs = 100,
           batch_size = 128,
           verbose=1,
           validation_data=(X_test, Y_test),
@@ -128,20 +136,20 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='best')
 plt.show()
 
-#pred = model.predict(np.array(X_test))
+pred = model.predict(np.array(X_test))
 #C = confusion_matrix([np.argmax(y) for y in Y_test], [np.argmax(y) for y in pred])
 
 #print (C / C.astype(np.float).sum(axis=1))
 
-# FROM = 0
-# TO = FROM + 500
-#
-# original = Y_test[FROM:TO]
-# predicted = pred[FROM:TO]
+FROM = 0
+TO = FROM + 500
 
-# plt.plot(original, color='black', label = 'Original data')
-# plt.plot(predicted, color='blue', label = 'Predicted data')
+original = Y_test[FROM:TO]
+predicted = pred[FROM:TO]
 
+plt.plot(original, color='black', label = 'Original data')
+plt.plot(predicted, color='blue', label = 'Predicted data')
+plt.show()
 # plt.plot(rr, color='blue', label = 'Predicted data')
 # plt.plot(qw, color='red', label = 'Predicted data')
 # plt.legend(loc='best')
