@@ -123,8 +123,8 @@ simple_lstm_model.compile(optimizer='adam', loss='mae')
 for x, y in val_univariate.take(1):
     print(simple_lstm_model.predict(x).shape)
 
-EVALUATION_INTERVAL = 100
-EPOCHS = 35
+EVALUATION_INTERVAL = 200
+EPOCHS = 15
 
 history = simple_lstm_model.fit(train_univariate, epochs=EPOCHS,
                       steps_per_epoch=EVALUATION_INTERVAL,
