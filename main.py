@@ -13,7 +13,6 @@
 # from sklearn.metrics import confusion_matrix
 # from sklearn import preprocessing
 import csv
-
 import numpy as np
 import matplotlib
 from matplotlib.ticker import MultipleLocator
@@ -125,7 +124,7 @@ for x, y in val_univariate.take(1):
     print(simple_lstm_model.predict(x).shape)
 
 EVALUATION_INTERVAL = 100
-EPOCHS = 10
+EPOCHS = 35
 
 history = simple_lstm_model.fit(train_univariate, epochs=EPOCHS,
                       steps_per_epoch=EVALUATION_INTERVAL,
