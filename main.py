@@ -71,6 +71,19 @@ def show_plot(plot_data, delta, title):
 def baseline(dataset):
     return np.mean(dataset)
 
+df = pd.read_csv('AAPL.csv')
+
+volume = df[['Volume']]
+close = df[['Adj Close']]
+
+for index, row in df.iterrows():
+      vol = row["Volume"]
+      cls = row["Adj Close"]
+      if  float(volume.quantile(0.025)) > vol or float(volume.quantile(0.975)) < vol or \
+      float(close.quantile(0.025)) > cls or float(close.quantile(0.975)) < cls:
+            df = df.drop(labels=[index], axis=0)
+
+df.to_csv("AAPL_clear.csv", index=False)
 
 dataset = pd.read_csv("AAPL_clear.csv", delimiter=",")
 dataset.set_index('Date', inplace=True)
@@ -79,8 +92,12 @@ dataset.drop(['Open', 'Close', 'Low', 'High', 'Volume'], axis=1, inplace=True)
 dataset.plot(subplots=True)
 plt.show()
 
-train = dataset[:1000]
-test = dataset[1000:]
+START = 0
+END = dataset['Adj Close'].count()
+SEPARATE = int(dataset['Adj Close'].count() * 0.9)
+
+train = dataset[:SEPARATE]
+test = dataset[SEPARATE:]
 # d = preprocessing.normalize(dataset)
 # scaled_df = pd.DataFrame(d, columns = 'Adj Close')
 # scaled_df.head()
@@ -102,8 +119,8 @@ dataset = (dataset - train.min()) / (train.max() - train.min())
 dataset = dataset.values
 past_history = 15
 future_target = 0
-x_train, y_train = univariate_data(dataset, 0, 1000, past_history, future_target)
-x_test, y_test = univariate_data(dataset, 1000, 1134, past_history, future_target)
+x_train, y_train = univariate_data(dataset, START, SEPARATE, past_history, future_target)
+x_test, y_test = univariate_data(dataset, SEPARATE, END, past_history, future_target)
 
 BATCH_SIZE = 256
 BUFFER_SIZE = 10000
@@ -123,8 +140,8 @@ simple_lstm_model.compile(optimizer='adam', loss='mae')
 for x, y in val_univariate.take(1):
     print(simple_lstm_model.predict(x).shape)
 
-EVALUATION_INTERVAL = 100
-EPOCHS = 35
+EVALUATION_INTERVAL = 200
+EPOCHS = 15
 
 history = simple_lstm_model.fit(train_univariate, epochs=EPOCHS,
                       steps_per_epoch=EVALUATION_INTERVAL,
@@ -146,9 +163,9 @@ plt.show()
 #   print(y[i] + " -- " + simple_lstm_model.predict(x)[i])
 # exit()
 for i in range(len(x[0].numpy())):
-    Xx = np.append(Xx, (x[0][i] * (train.max() - train.min()) + train.min()).numpy())
-Yy = y[0].numpy() * (train.max() - train.min()) + train.min()
-Zz = simple_lstm_model.predict(x)[0] * (train.max() - train.min()) + train.min()
+    Xx = np.append(Xx, (x[3][i] * (train.max() - train.min()) + train.min()).numpy())
+Yy = y[3].numpy() * (train.max() - train.min()) + train.min()
+Zz = simple_lstm_model.predict(x)[3] * (train.max() - train.min()) + train.min()
 
 for x, y in val_univariate.take(1):
     plot = show_plot([Xx, Yy,
@@ -160,18 +177,25 @@ for x, y in val_univariate.take(1):
 print(float(abs(Yy - Zz)))
 print(float(abs(Yy - Zz) * 100) / float(abs(Yy)))
 
+a = 0
 with open("AAPL_predict.csv", mode="w", encoding="utf-8") as w_file:
     file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
     file_writer.writerow(["Значение X", "Значение Y", "Значение Z", "Рост/падение", "Предсказанные рост/падение"])
     for i in range(len(y)):
-        if float(y[i].numpy() * (train.max() - train.min()) + train.min()) > float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()):
+        if float(y[i].numpy() * (train.max() - train.min())
+                 + train.min()) > float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()):
             Yx = "Рост"
         else:
             Yx = "Падение"
-        if float(simple_lstm_model.predict(x)[i] * (train.max() - train.min()) + train.min()) > float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()):
+        if float(simple_lstm_model.predict(x)[i] * (train.max() - train.min())
+                 + train.min()) > float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()):
             Zx = "Рост"
         else:
             Zx = "Падение"
+
+        if Yx == Zx:
+            a += 1
+
         file_writer.writerow([float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()),
                               float(y[i].numpy() * (train.max() - train.min()) + train.min()),
                               float(simple_lstm_model.predict(x)[i] * (train.max() - train.min()) + train.min()),
