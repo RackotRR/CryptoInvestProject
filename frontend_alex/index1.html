@@ -1,0 +1,29 @@
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>Гистограмма</title>
+  <script src="https://www.google.com/jsapi"></script>
+  <script>
+   google.load("visualization", "1", {packages:["corechart"]});
+   google.setOnLoadCallback(drawChart);
+   function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+     ['Год', 'Россия' ],
+     ['1860', 10 ],
+     ['1885', 20],
+     ['1901', 30]
+    ]);
+    var options = {
+     title: 'Добыча нефти',
+     hAxis: {title: 'Год'},
+     vAxis: {title: 'Тыс. тонн'}
+    };
+    var chart = new google.visualization.ColumnChart(document.getElementById('oil'));
+    chart.draw(data, options);
+   }
+  </script>
+ </head>
+ <body>
+  <div id="oil" style="width: 500px; height: 400px;"></div>
+ </body>
+ </html>
