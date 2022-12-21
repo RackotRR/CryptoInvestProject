@@ -1,17 +1,3 @@
-# import matplotlib.pylab as plt
-# import numpy as np
-# import pandas as pd
-# import csv
-# import seaborn as sbn
-# from keras.models import Sequential
-# from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
-# from keras.optimizers import RMSprop, Adam, SGD, Nadam
-# from keras.layers import *
-# from keras import regularizers
-# from keras.utils import normalize
-# from sklearn.metrics import classification_report
-# from sklearn.metrics import confusion_matrix
-# from sklearn import preprocessing
 import csv
 import numpy as np
 import matplotlib
@@ -148,7 +134,6 @@ history = simple_lstm_model.fit(train_univariate, epochs=EPOCHS,
                       validation_data=val_univariate, validation_steps=50)
 Xx = np.array([])
 
-# print(history.history.keys())
 plt.figure()
 plt.plot(simple_lstm_model.history.history['loss'])
 plt.plot(simple_lstm_model.history.history['val_loss'])
@@ -158,10 +143,6 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='best')
 plt.show()
 
-
-# for i in range(len(y)):
-#   print(y[i] + " -- " + simple_lstm_model.predict(x)[i])
-# exit()
 for i in range(len(x[0].numpy())):
     Xx = np.append(Xx, (x[3][i] * (train.max() - train.min()) + train.min()).numpy())
 Yy = y[3].numpy() * (train.max() - train.min()) + train.min()
@@ -171,13 +152,10 @@ for x, y in val_univariate.take(1):
     plot = show_plot([Xx, Yy,
                       Zz], 0, 'Simple LSTM model')
     plot.show()
-#for i in range(len(y)):
-    #print(str(float((x[i][14] * (train.max() - train.min()) + train.min()).numpy())) + "   " + str(float(y[i].numpy() * (train.max() - train.min()) + train.min())))
-   # print(float(simple_lstm_model.predict(x)[i] * (train.max() - train.min()) + train.min()))
+
 print(float(abs(Yy - Zz)))
 print(float(abs(Yy - Zz) * 100) / float(abs(Yy)))
 
-a = 0
 with open("AAPL_predict.csv", mode="w", encoding="utf-8") as w_file:
     file_writer = csv.writer(w_file, delimiter=",", lineterminator="\r")
     file_writer.writerow(["Значение X", "Значение Y", "Значение Z", "Рост/падение", "Предсказанные рост/падение"])
@@ -192,179 +170,8 @@ with open("AAPL_predict.csv", mode="w", encoding="utf-8") as w_file:
             Zx = "Рост"
         else:
             Zx = "Падение"
-
-        if Yx == Zx:
-            a += 1
-
         file_writer.writerow([float((x[i][14] * (train.max() - train.min()) + train.min()).numpy()),
                               float(y[i].numpy() * (train.max() - train.min()) + train.min()),
                               float(simple_lstm_model.predict(x)[i] * (train.max() - train.min()) + train.min()),
                               Yx,
                               Zx])
-# show_plot([x_train[0], y_train[0],baseline(x_train[0])], 0, 'Sample Example')
-# plt.show()
-
-# def shuffle_in_unison(a, b):
-#     assert len(a) == len(b)
-#     shuffled_a = np.empty(a.shape, dtype=a.dtype)
-#     shuffled_b = np.empty(b.shape, dtype=b.dtype)
-#     permutation = np.random.permutation(len(a))
-#     for old_index, new_index in enumerate(permutation):
-#         shuffled_a[new_index] = a[old_index]
-#         shuffled_b[new_index] = b[old_index]
-#     return shuffled_a, shuffled_b
-#
-# def create_Xt_Yt(X, y, percentage=0.9):
-#     p = int(len(X) * percentage)
-#     X_train = X[0:p]
-#     Y_train = y[0:p]
-#
-#     X_train, Y_train = shuffle_in_unison(X_train, Y_train)
-#
-#     X_test = X[p:]
-#     Y_test = y[p:]
-#
-#     return X_train, X_test, Y_train, Y_test
-#
-# with open("AAPL_clear.csv", encoding='utf-8') as r_file:
-#     data = pd.read_csv(r_file, delimiter=",")
-#     # three_sigma_vol = 3 * data["Volume"].std()
-#     # three_sigma_cls = 3 * data["Adj Close"].std()
-#     # i=0
-#     # for index, row in data.iterrows():
-#     #     vol = row["Volume"]
-#     #     cls = row["Adj Close"]
-#     #
-#     #     if vol < data["Volume"].mean() - three_sigma_vol or \
-#     #             vol > data["Volume"].mean() + three_sigma_vol or \
-#     #             cls < data["Adj Close"].mean() - three_sigma_cls or \
-#     #             cls > data["Adj Close"].mean() + three_sigma_cls:
-#     #         i+=1
-#     # print(i)
-#     # exit()
-#     close_price = data[["Adj Close"]].to_numpy()
-#     data = data.drop(columns=['Date'], axis=1)
-#     volume = data[["Volume"]].to_numpy()
-#
-# # fig = plt.figure()
-# # ax1 = fig.add_subplot(111)
-# # ax1.set_xlim(1, 500)
-# # ax1.set_ylim(100, 200)
-# # ax1.plot(close_price)
-# # ax1.set_xlabel('days')
-# # ax1.set_ylabel('dollars')
-# # ax1.set_title('cost')
-# # plt.show()
-#
-# # print(df.head())
-# # print(df.describe())
-# # print(df.isnull().sum())
-# # print(df.info())
-# #
-#
-# # sbn.pairplot(data, hue='Volume')
-# # plt.show()
-# #
-# # sbn.boxplot(volume)
-# # plt.show()
-# # sbn.boxplot(close_price)
-# # plt.show()
-#
-# #print(close_price)
-#
-# WINDOW = 30
-# EMB_SIZE = 1
-# STEP = 1
-# FORECAST = 5
-# X, Y = [], []
-#
-# for i in range(0, len(close_price), STEP):
-#     try:
-#         x_i = close_price[i:i+WINDOW]
-#         y_i = close_price[i+WINDOW+FORECAST]
-#
-#         last_close = x_i[WINDOW-1]
-#         next_close = y_i
-#
-#         if last_close < next_close:
-#             y_i = [1, 0]
-#         else:
-#             y_i = [0, 1]
-#
-#     except Exception as e:
-#         print(e)
-#         break
-#
-#     X.append(x_i)
-#     Y.append(y_i)
-# X = np.resize(X, (30, 30))
-# Y = np.resize(Y, (30, 2))
-# transformer = preprocessing.Normalizer().fit(X)
-# #X = [(np.array(x) - np.mean(x)) / np.std(x) for x in X]  # comment it to remove normalization
-# X = transformer.transform(X)
-# print(X)
-# X, Y = np.array(X), np.array(Y)
-# X_train, X_test, Y_train, Y_test = create_Xt_Yt(X, Y)
-#
-# model = Sequential()
-# model.add(Dense(32, input_dim=30, activity_regularizer=regularizers.l2(0.01)))
-# model.add(BatchNormalization())
-# model.add(ReLU())
-# model.add(Dropout(0.5))
-# model.add(Dense(16, activity_regularizer=regularizers.l2(0.01)))
-# model.add(BatchNormalization())
-# model.add(ReLU())
-# model.add(Dense(2))
-# model.add(Activation('linear'))
-#
-# opt = Adam()
-#
-# reduce_lr = ReduceLROnPlateau(monitor='val_accuracy', factor=0.9, patience=25, min_lr=0.000001, verbose=1)
-# #checkpointer = ModelCheckpoint(filepath="test.hdf5", verbose=0, save_best_only=True)
-# model.compile(optimizer=opt, loss='mse', metrics=['accuracy'])
-#
-# history = model.fit(X_train, Y_train,
-#           epochs = 100,
-#           batch_size = 128,
-#           verbose=0,
-#           validation_data=(X_test, Y_test),
-#           callbacks=[reduce_lr],
-#           shuffle=True)
-#
-# plt.figure()
-# plt.plot(history.history['loss'])
-# plt.plot(history.history['val_loss'])
-# plt.title('model loss')
-# plt.ylabel('loss')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'test'], loc='best')
-# plt.show()
-#
-# plt.figure()
-# plt.plot(history.history['accuracy'])
-# plt.plot(history.history['val_accuracy'])
-# plt.title('model accuracy')
-# plt.ylabel('accuracy')
-# plt.xlabel('epoch')
-# plt.legend(['train', 'test'], loc='best')
-# plt.show()
-#
-# # pred = model.predict(np.array(X_test))
-# # #C = confusion_matrix([np.argmax(y) for y in Y_test], [np.argmax(y) for y in pred])
-# #
-# # #print (C / C.astype(np.float).sum(axis=1))
-# #
-# # FROM = 0
-# # TO = FROM + 500
-# #
-# # original = Y_test[FROM:TO]
-# # predicted = pred[FROM:TO]
-# #
-# # plt.plot(original, color='black', label = 'Original data')
-# # plt.plot(predicted, color='blue', label = 'Predicted data')
-# # plt.show()
-# # plt.plot(rr, color='blue', label = 'Predicted data')
-# # plt.plot(qw, color='red', label = 'Predicted data')
-# # plt.legend(loc='best')
-# # plt.title('Actual and predicted from point %d to point %d of test set' % (FROM, TO))
-# # plt.show()
